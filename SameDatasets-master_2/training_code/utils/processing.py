@@ -27,6 +27,9 @@ import torchvision.transforms.functional as TF
 from PIL import Image
 from scipy.ndimage.filters import gaussian_filter
 from utils.custom_aug import *
+
+from training_code.utils.custom_aug import RandomResizedCropWithVariableSize
+
 random.seed(17)
 def make_processing(opt):
     # make precessing transform做图像预处理变换
@@ -121,7 +124,7 @@ def add_processing_arguments(parser):
     parser.add_argument("--blur_sig", default="0.5")
     parser.add_argument("--cmp_method", default="cv2")
     parser.add_argument("--cmp_qual", default="75")
-    parser.add_argument("--resize_size", type=int, default=256)
+    parser.add_argument("--resize_size", type=int, default=128)
     parser.add_argument("--resize_ratio", type=float, default=1.0)
 
     # other
@@ -195,14 +198,23 @@ def make_pre(opt):
 # 后处理，详细的每块解释在OneNote中。
 def make_post(opt):
     transforms_list = list()
-    if opt.resizeSize > 0:# 后处理中的缩放
-        print("\nUsing Post Resizing\n") # 后处理中的缩放
+    #if opt.resizeSize > 0:# 后处理中的缩放
+    #    print("\nUsing Post Resizing\n") # 后处理中的缩放
+    # 兼容两种参数名：--resize_size 与 --resizeSize
+    resize_size = getattr(opt, 'resize_size', None)
+    if resize_size is None:
+        resize_size = getattr(opt, 'resizeSize', -1)
+    if resize_size and resize_size > 0:  # 后处理中的缩放
+        print("\nUsing Post Resizing\n")
+
         transforms_list.append(
             transforms.Resize(
-                opt.resizeSize, interpolation=transforms.InterpolationMode.BICUBIC
+                #opt.resizeSize, interpolation=transforms.InterpolationMode.BICUBIC
+                resize_size, interpolation = transforms.InterpolationMode.BICUBIC
             )
         )
-        transforms_list.append(transforms.CenterCrop((opt.resizeSize, opt.resizeSize)))
+        # transforms_list.append(transforms.CenterCrop((opt.resizeSize, opt.resizeSize)))
+        transforms_list.append(transforms.CenterCrop((resize_size, resize_size)))
 
     if opt.cropSize > 0:#把图像裁剪成指定大小（cropSize），方式可以是随机裁剪，也可以是中心裁剪。
         if not opt.no_random_crop:

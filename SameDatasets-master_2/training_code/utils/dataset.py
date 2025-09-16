@@ -110,7 +110,7 @@ def add_dataloader_arguments(parser):
     parser.add_argument('--batched_syncing', action='store_true', help='synchronize the batches')
     parser.add_argument('--adm', action='store_true', help='account for ADM training')
     parser.add_argument("--data_cap", type=int, default=None)
-    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--num_threads", default=8, type=int, help='# threads for loading data')
     parser.add_argument("--seed", default=8, type=int, help='# SEED')
     parser = add_processing_arguments(parser)
@@ -214,7 +214,7 @@ def create_dataloader(opt, subdir='.', is_train=True):
                                             #如果是训练集，会调用get_bal_sampler(dataset)生成一个平衡采样器（Balanced Sampler），用于按一定权重或均衡方式采样，避免类别不平衡带来的训练偏差。
                                             #如果是验证集，则不使用采样器，默认顺序采样。
         #num_workers=int(opt.num_threads),  #说明代码支持根据配置动态设置线程数，不过这里固定用0。
-        num_workers=0,# 指明加载数据时使用多少个子进程并行加载。这里设为0，表示数据加载在主进程同步进行，没有使用多线程或多进程。
+        num_workers=8,# 指明加载数据时使用多少个子进程并行加载。这里设为0，表示数据加载在主进程同步进行，没有使用多线程或多进程。
         collate_fn=collate_fn,  # 使用自定义collate函数
     )
     return data_loader

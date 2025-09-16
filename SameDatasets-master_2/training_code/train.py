@@ -11,6 +11,7 @@ import argparse
 import torch
 from utils.training import add_training_arguments
 from utils.dataset import add_dataloader_arguments
+import gc
 
 # 导入新的数据转换和模型
 from data_transforms import ImagePatchShuffle, create_patch_shuffle_transform
@@ -94,6 +95,10 @@ if __name__ == "__main__":
                 if total_steps % writer_loss_steps == 0:# 每隔一定步数（writer_loss_steps）记录训练损失到 TensorBoard，方便训练过程监控。
                     writer.add_scalar("train/loss", loss, total_steps)#
 
+                # 内存清理
+                if total_steps % 10 == 0:  # 每10步清理一次内存
+                    torch.cuda.empty_cache()
+                    gc.collect()
             # Save model
             model.save_networks(epoch)# 训练完一个 epoch 后保存模型快照，以便后续恢复或评估。
 
